@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>두 자리 수 곱셈 모험</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .screen {
+            display: none;
+        }
+        
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        h1 {
+            color: #ff6b6b;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .welcome-screen h1 {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .input-group {
+            margin: 20px 0;
+        }
+        
+        label {
+            display: block;
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        
+        input[type="text"] {
+            padding: 15px;
+            border: 3px solid #ddd;
+            border-radius: 15px;
+            font-size: 1.2em;
+            width: 250px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="text"]:focus {
+            border-color: #ff6b6b;
+            outline: none;
+            transform: scale(1.05);
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn.success {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+        }
+        
+        .btn.next {
+            background: linear-gradient(45deg, #45b7d1, #96c93d);
+        }
+        
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            text-align: center;
+            margin: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .level-progress {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .level-progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #ff6b6b, #ffa726);
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+        
+        .problem {
+            background: #fff3cd;
+            border: 3px solid #ffc107;
+            border-radius: 20px;
+            padding: 40px 20px;
+            margin: 20px 0;
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .problem-input {
+            font-size: 1.5em !important;
+            width: 150px !important;
+            margin-top: 20px;
+        }
+        
+        .tokens {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .token {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 1.2em;
+            animation: bounce 0.5s ease;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        
+        .token.gold {
+            background: linear-gradient(45deg, #ffd700, #ffb347);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        
+        .token.silver {
+            background: linear-gradient(45deg, #c0c0c0, #a8a8a8);
+            box-shadow: 0 0 20px rgba(192, 192, 192, 0.5);
+        }
+        
+        .token.bronze {
+            background: linear-gradient(45deg, #cd7f32, #b87333);
+            box-shadow: 0 0 20px rgba(205, 127, 50, 0.5);
+        }
+        
+        .feedback {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+        
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+        
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+        
+        .level-badge {
+            display: inline-block;
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .completion-screen {
+            text-align: center;
+        }
+        
+        .completion-screen .trophy {
+            font-size: 5em;
+            margin: 20px 0;
+            animation: rotate 2s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .level-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .level-btn {
+            padding: 20px;
+            border: 3px solid #ddd;
+            border-radius: 15px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .level-btn:hover {
+            border-color: #ff6b6b;
+            transform: scale(1.05);
+        }
+        
+        .level-btn.completed {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+            border-color: #4ecdc4;
+        }
+        
+        .level-btn.locked {
+            background: #f8f9fa;
+            color: #999;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        .level-btn .level-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .level-btn .level-name {
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 환영 화면 -->
+        <div id="welcomeScreen" class="screen active">
+            <h1>🌟 두 자리 수 곱셈 모험 🌟</h1>
+            <p style="font-size: 1.2em; color: #666; margin-bottom: 30px;">
+                곱셈 모험가가 되어 토큰을 모으고 레벨을 클리어해보세요!
+            </p>
+            <div class="input-group">
+                <label for="nickname">모험가 이름을 입력하세요:</label>
+                <input type="text" id="nickname" placeholder="예: 곱셈왕 민수" maxlength="10">
+            </div>
+            <button class="btn" onclick="startGame()">모험 시작하기! 🚀</button>
+        </div>
+        
+        <!-- 레벨 선택 화면 -->
+        <div id="levelScreen" class="screen">
+            <h1>레벨 선택</h1>
+            <p id="playerName" style="font-size: 1.3em; color: #ff6b6b; margin-bottom: 20px;"></p>
+            
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-label">총 토큰</div>
+                    <div class="stat-value" id="totalTokens">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">클리어 레벨</div>
+                    <div class="stat-value" id="clearedLevels">0/5</div>
+                </div>
+            </div>
+            
+            <div class="tokens" id="tokenDisplay"></div>
+            
+            <div class="level-selector" id="levelSelector"></div>
+            
+            <button class="btn" onclick="resetProgress()">처음부터 다시하기</button>
+        </div>
+        
+        <!-- 게임 화면 -->
+        <div id="gameScreen" class="screen">
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-label">레벨</div>
+                    <div class="stat-value" id="currentLevel">1</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">문제</div>
+                    <div class="stat-value" id="currentQuestion">1/5</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">토큰</div>
+                    <div class="stat-value" id="currentTokens">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">정답률</div>
+                    <div class="stat-value" id="accuracy">100%</div>
+                </div>
+            </div>
+            
+            <div class="level-progress">
+                <div class="level-progress-fill" id="progressFill" style="width: 20%"></div>
+            </div>
+            
+            <div class="problem" id="problem">
+                10 × 20 = ?
+            </div>
+            
+            <input type="text" id="answerInput" class="problem-input" placeholder="답을 입력하세요" maxlength="5">
+            
+            <div>
+                <button class="btn" onclick="checkAnswer()">정답 확인! 🎯</button>
+                <button class="btn" onclick="showLevelScreen()">레벨 선택으로 돌아가기</button>
+            </div>
+            
+            <div id="feedback" class="feedback" style="display: none;"></div>
+        </div>
+        
+        <!-- 레벨 완료 화면 -->
+        <div id="completionScreen" class="screen completion-screen">
+            <h1>🎉 레벨 클리어! 🎉</h1>
+            <div class="trophy">🏆</div>
+            <div class="level-badge" id="completedLevel">레벨 1 완료</div>
+            <p id="completionMessage" style="font-size: 1.3em; margin: 20px 0;"></p>
+            <div class="tokens" id="earnedTokens"></div>
+            <div>
+                <button class="btn next" onclick="nextLevel()">다음 레벝! 🚀</button>
+                <button class="btn" onclick="showLevelScreen()">레벨 선택</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let gameData = {
+            playerName: '',
+            currentLevel: 1,
+            currentQuestion: 1,
+            totalTokens: 0,
+            levelTokens: [],
+            completedLevels: new Set(),
+            correctAnswers: 0,
+            totalAnswers: 0,
+            currentLevelQuestions: []
+        };
+        
+        // 레벨별 문제 범위 설정
+        const levelConfig = {
+            1: { name: '기초편', range: { min: 10, max: 19 }, questionsPerLevel: 5, tokenReward: 'bronze' },
+            2: { name: '도전편', range: { min: 15, max: 25 }, questionsPerLevel: 5, tokenReward: 'bronze' },
+            3: { name: '실력편', range: { min: 20, max: 35 }, questionsPerLevel: 5, tokenReward: 'silver' },
+            4: { name: '고수편', range: { min: 30, max: 50 }, questionsPerLevel: 5, tokenReward: 'silver' },
+            5: { name: '마스터편', range: { min: 40, max: 99 }, questionsPerLevel: 5, tokenReward: 'gold' }
+        };
+        
+        // 로컬 스토리지에서 데이터 로드
+        function loadGameData() {
+            const saved = localStorage.getItem('mathGameData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                gameData = { ...gameData, ...data };
+                gameData.completedLevels = new Set(data.completedLevels || []);
+            }
+        }
+        
+        // 로컬 스토리지에 데이터 저장
+        function saveGameData() {
+            const dataToSave = {
+                ...gameData,
+                completedLevels: Array.from(gameData.completedLevels)
+            };
+            localStorage.setItem('mathGameData', JSON.stringify(dataToSave));
+        }
+        
+        // 화면 전환
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+        
+        // 게임 시작
+        function startGame() {
+            const nickname = document.getElementById('nickname').value.trim();
+            if (!nickname) {
+                alert('이름을 입력해주세요! 😊');
+                return;
+            }
+            
+            gameData.playerName = nickname;
+            saveGameData();
+            showLevelScreen();
+        }
+        
+        // 레벨 선택 화면 표시
+        function showLevelScreen() {
+            document.getElementById('playerName').textContent = `안녕하세요, ${gameData.playerName}님! 🌟`;
+            document.getElementById('totalTokens').textContent = gameData.totalTokens;
+            document.getElementById('clearedLevels').textContent = `${gameData.completedLevels.size}/5`;
+            
+            updateTokenDisplay();
+            updateLevelSelector();
+            showScreen('levelScreen');
+        }
+        
+        // 토큰 디스플레이 업데이트
+        function updateTokenDisplay() {
+            const tokenDisplay = document.getElementById('tokenDisplay');
+            tokenDisplay.innerHTML = '';
+            
+            gameData.levelTokens.forEach(token => {
+                const tokenElement = document.createElement('div');
+                tokenElement.className = `token ${token.type}`;
+                tokenElement.textContent = token.level;
+                tokenDisplay.appendChild(tokenElement);
+            });
+        }
+        
+        // 레벨 선택기 업데이트
+        function updateLevelSelector() {
+            const levelSelector = document.getElementById('levelSelector');
+            levelSelector.innerHTML = '';
+            
+            for (let level = 1; level <= 5; level++) {
+                const levelBtn = document.createElement('div');
+                levelBtn.className = 'level-btn';
+                
+                if (gameData.completedLevels.has(level)) {
+                    levelBtn.classList.add('completed');
+                } else if (level > 1 && !gameData.completedLevels.has(level - 1)) {
+                    levelBtn.classList.add('locked');
+                }
+                
+                levelBtn.innerHTML = `
+                    <div class="level-number">${level}</div>
+                    <div class="level-name">${levelConfig[level].name}</div>
+                `;
+                
+                if (!levelBtn.classList.contains('locked')) {
+                    levelBtn.addEventListener('click', () => startLevel(level));
+                }
+                
+                levelSelector.appendChild(levelBtn);
+            }
+        }
+        
+        // 레벨 시작
+        function startLevel(level) {
+            gameData.currentLevel = level;
+            gameData.currentQuestion = 1;
+            gameData.correctAnswers = 0;
+            gameData.totalAnswers = 0;
+            gameData.currentLevelQuestions = generateQuestions(level);
+            
+            updateGameScreen();
+            showScreen('gameScreen');
+        }
+        
+        // 문제 생성
+        function generateQuestions(level) {
+            const config = levelConfig[level];
+            const questions = [];
+            
+            for (let i = 0; i < config.questionsPerLevel; i++) {
+                const num1 = Math.floor(Math.random() * (config.range.max - config.range.min + 1)) + config.range.min;
+                const num2 = Math.floor(Math.random() * (config.range.max - config.range.min + 1)) + config.range.min;
+                questions.push({ num1, num2, answer: num1 * num2 });
+            }
+            
+            return questions;
+        }
+        
+        // 게임 화면 업데이트
+        function updateGameScreen() {
+            const currentQ = gameData.currentLevelQuestions[gameData.currentQuestion - 1];
+            
+            document.getElementById('currentLevel').textContent = gameData.currentLevel;
+            document.getElementById('currentQuestion').textContent = `${gameData.currentQuestion}/5`;
+            document.getElementById('currentTokens').textContent = gameData.totalTokens;
+            document.getElementById('problem').textContent = `${currentQ.num1} × ${currentQ.num2} = ?`;
+            document.getElementById('answerInput').value = '';
+            document.getElementById('feedback').style.display = 'none';
+            
+            const accuracy = gameData.totalAnswers > 0 ? Math.round((gameData.correctAnswers / gameData.totalAnswers) * 100) : 100;
+            document.getElementById('accuracy').textContent = `${accuracy}%`;
+            
+            const progressWidth = (gameData.currentQuestion / 5) * 100;
+            document.getElementById('progressFill').style.width = `${progressWidth}%`;
+            
+            // 입력 필드에 포커스
+            setTimeout(() => {
+                document.getElementById('answerInput').focus();
+            }, 100);
+        }
+        
+        // 엔터 키로 답 제출
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && document.getElementById('gameScreen').classList.contains('active')) {
+                checkAnswer();
+            }
+        });
+        
+        // 답안 확인
+        function checkAnswer() {
+            const userAnswer = parseInt(document.getElementById('answerInput').value);
+            const currentQ = gameData.currentLevelQuestions[gameData.currentQuestion - 1];
+            const feedback = document.getElementById('feedback');
+            
+            if (isNaN(userAnswer)) {
+                alert('숫자를 입력해주세요! 😊');
+                return;
+            }
+            
+            gameData.totalAnswers++;
+            
+            if (userAnswer === currentQ.answer) {
+                gameData.correctAnswers++;
+                feedback.className = 'feedback correct';
+                feedback.textContent = `🎉 정답입니다! ${currentQ.num1} × ${currentQ.num2} = ${currentQ.answer}`;
+                
+                setTimeout(() => {
+                    nextQuestion();
+                }, 1500);
+            } else {
+                feedback.className = 'feedback incorrect';
+                feedback.textContent = `❌ 틀렸어요. 정답은 ${currentQ.answer}입니다. 다시 생각해보세요!`;
+                
+                setTimeout(() => {
+                    nextQuestion();
+                }, 2500);
+            }
+            
+            feedback.style.display = 'block';
+            updateGameScreen();
+        }
+        
+        // 다음 문제
+        function nextQuestion() {
+            if (gameData.currentQuestion < 5) {
+                gameData.currentQuestion++;
+                updateGameScreen();
+            } else {
+                completeLevel();
+            }
+        }
+        
+        // 레벨 완료
+        function completeLevel() {
+            const level = gameData.currentLevel;
+            const config = levelConfig[level];
+            const accuracy = (gameData.correctAnswers / gameData.totalAnswers) * 100;
+            
+            // 토큰 획득 (정답률에 따라)
+            let tokensEarned = 0;
+            let tokenType = config.tokenReward;
+            
+            if (accuracy >= 80) {
+                tokensEarned = 3;
+                if (accuracy === 100) tokenType = 'gold';
+            } else if (accuracy >= 60) {
+                tokensEarned = 2;
+            } else {
+                tokensEarned = 1;
+            }
+            
+            // 토큰 추가
+            for (let i = 0; i < tokensEarned; i++) {
+                gameData.levelTokens.push({ level, type: tokenType });
+            }
+            gameData.totalTokens += tokensEarned;
+            
+            // 레벨 완료 표시
+            gameData.completedLevels.add(level);
+            
+            // 완료 화면 업데이트
+            document.getElementById('completedLevel').textContent = `레벨 ${level} 완료`;
+            document.getElementById('completionMessage').textContent = 
+                `${gameData.correctAnswers}문제를 맞혔어요! (정답률: ${Math.round(accuracy)}%)`;
+            
+            const earnedTokensDiv = document.getElementById('earnedTokens');
+            earnedTokensDiv.innerHTML = '';
+            for (let i = 0; i < tokensEarned; i++) {
+                const token = document.createElement('div');
+                token.className = `token ${tokenType}`;
+                token.textContent = level;
+                earnedTokensDiv.appendChild(token);
+            }
+            
+            saveGameData();
+            showScreen('completionScreen');
+        }
+        
+        // 다음 레벨
+        function nextLevel() {
+            if (gameData.currentLevel < 5) {
+                startLevel(gameData.currentLevel + 1);
+            } else {
+                alert('🎉 모든 레벨을 완료했습니다! 축하합니다!');
+                showLevelScreen();
+            }
+        }
+        
+        // 진행상황 초기화
+        function resetProgress() {
+            if (confirm('정말로 처음부터 다시 시작하시겠습니까?')) {
+                gameData = {
+                    playerName: gameData.playerName,
+                    currentLevel: 1,
+                    currentQuestion: 1,
+                    totalTokens: 0,
+                    levelTokens: [],
+                    completedLevels: new Set(),
+                    correctAnswers: 0,
+                    totalAnswers: 0,
+                    currentLevelQuestions: []
+                };
+                saveGameData();
+                showLevelScreen();
+            }
+        }
+        
+        // 게임 초기화
+        function initGame() {
+            loadGameData();
+            
+            if (gameData.playerName) {
+                showLevelScreen();
+            } else {
+                showScreen('welcomeScreen');
+            }
+        }
+        
+        // 게임 시작
+        initGame();
+    </script>
+</body>
+</html>
